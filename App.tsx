@@ -7,21 +7,22 @@ import { Script } from './types';
 import { generateScript } from './services/geminiService';
 import { Terminal, Sparkles, Settings, ChevronUp, ChevronDown, Check, Save, XCircle, AlertTriangle } from 'lucide-react';
 
-const INITIAL_SYSTEM_PROMPT = `# PEAK PRODUCTION ENGINE — SEQUENTIAL CONSISTENCY-LOCKED GENERATOR
+const INITIAL_SYSTEM_PROMPT = `# PEAK PRODUCTION ENGINE — TRIPLE-SCENE CONTINUITY GENERATOR
 
 ## MANDATORY WORKFLOW
 
-### PHASE 1: NARRATIVE ARC
-Create a high-energy cinematic sequence. Focus on a singular, evolving moment.
+### PHASE 1: THREE-ACT MINI ARC
+Generate EXACTLY 3 scenes. Each scene must represent 5 to 8 seconds of footage.
+Total sequence duration must be between 15-24 seconds.
 
 ### PHASE 2: VISUAL BIBLE (LOCKS)
 Before writing scenes, you MUST define these constants:
-1. **Character Lock**: Define EXACT physical features (age, eyes, hair) and clothes. These CANNOT change. If the character is 3 years old in Scene 1, they are 3 in Scene 5.
-2. **Environment Lock**: Define the specific lighting and setting details (e.g., "Neon-lit Tokyo Alley, raining, blue/cyan shadows").
+1. **Character Lock**: Define EXACT physical features (age, eyes, hair) and clothes. These CANNOT change. No age-jumping. If they are a toddler in Scene 1, they are a toddler in all 3 scenes.
+2. **Environment Lock**: Define the specific lighting and setting (e.g., "Misty sunrise in a pine forest, soft volumetric lighting").
 
-### PHASE 3: SEQUENTIAL CONTINUITY (CRITICAL)
-- **FRAME HANDOFF**: The 'end_frame_prompt' of Scene N MUST be the basis for the 'start_frame_prompt' of Scene N+1. They must describe the exact same visual state to ensure a smooth transition.
-- **CONSISTENCY**: Every prompt must mention the Character and Environment Locks to prevent model drift.
+### PHASE 3: SEQUENTIAL CONTINUITY (THE HANDOFF)
+- **FRAME LINKING**: The 'end_frame_prompt' of Scene 1 MUST be the 'start_frame_prompt' of Scene 2. The 'end_frame_prompt' of Scene 2 MUST be the 'start_frame_prompt' of Scene 3.
+- Descriptions must match 1:1 to ensure the AI video generator treats them as the same moment in time.
 
 ### PHASE 4: STRUCTURED OUTPUT
 Output the script in the requested JSON format.
@@ -30,24 +31,20 @@ Output the script in the requested JSON format.
 
 ## OUTPUT SCHEMA RULES
 
-- **visual_description**: A stand-alone masterpiece prompt for AI video generation.
-- **camera_motion**: Precise cinematic movement.
-- **start_frame_prompt**: Detailed image prompt for the first frame. 
-- **end_frame_prompt**: Detailed image prompt for the final frame. **Crucial**: This MUST match the start frame of the following scene.
+- **visual_description**: A stand-alone cinematic prompt for the video generation tool.
+- **camera_motion**: Precise cinematic movement (e.g., "Static", "Pan Left", "Dolly In").
+- **start_frame_prompt**: Detailed image prompt for the starting frame. 
+- **end_frame_prompt**: Detailed image prompt for the ending frame.
 - **dialogue_or_narration**: Audio components.
 - **mood_and_lighting**: Atmospheric cues.
 
 ---
 
 ## CONSTRAINTS
-1. **JSON ONLY**: No preamble or metadata.
-2. **TIME**: Total sequence < 24 seconds.
-3. **NO JUMPS**: No sudden aging or outfit changes. No sudden location jumps unless specified as a "match cut".
-
----
-
-## FOR WHISK / GOOGLE LABS
-Maintain a consistent style keyword (e.g., "Cinematic photorealism", "Studio Ghibli style") in every single frame and visual description prompt.`;
+1. **EXACTLY 3 SCENES**: No more, no less.
+2. **JSON ONLY**: No markdown or meta-text.
+3. **NO JUMPS**: No sudden aging, outfit changes, or background shifts unless it's a "match cut" with identical composition.
+4. **STYLE**: Maintain consistent style keywords (e.g., "Cinematic photorealism", "Hyper-detailed 8k") in every prompt field.`;
 
 type KeyStatus = 'missing' | 'connected' | 'error';
 
@@ -66,8 +63,8 @@ const App: React.FC = () => {
   const [isSystemPromptExpanded, setIsSystemPromptExpanded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('peak_scripts_v12');
-    const savedConfig = localStorage.getItem('peak_config_v12');
+    const saved = localStorage.getItem('peak_scripts_v13');
+    const savedConfig = localStorage.getItem('peak_config_v13');
     if (saved) {
       try { setScripts(JSON.parse(saved)); } catch (e) { console.error("History fail"); }
     }
@@ -81,7 +78,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('peak_scripts_v12', JSON.stringify(scripts));
+    localStorage.setItem('peak_scripts_v13', JSON.stringify(scripts));
   }, [scripts]);
 
   useEffect(() => {
@@ -93,14 +90,14 @@ const App: React.FC = () => {
   }, [config.apiKey]);
 
   const handleSaveConfig = () => {
-    localStorage.setItem('peak_config_v12', JSON.stringify(config));
+    localStorage.setItem('peak_config_v13', JSON.stringify(config));
     setIsSystemPromptExpanded(false);
     setIsConfigExpanded(false);
   };
 
   const handleGenerate = async (formData: any) => {
     if (!config.apiKey) {
-      setError("API Key required.");
+      setError("API Key Required.");
       setIsConfigExpanded(true);
       return;
     }
@@ -159,7 +156,7 @@ const App: React.FC = () => {
           {isLoading && (
             <div className="py-20 flex flex-col items-center justify-center space-y-8">
               <div className="w-16 h-16 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
-              <p className="text-blue-400 font-bold uppercase tracking-[0.2em] text-sm">Locking Character & Environment Continuity...</p>
+              <p className="text-blue-400 font-bold uppercase tracking-[0.2em] text-sm">Locking Sequential Frame Continuity...</p>
             </div>
           )}
 
@@ -188,7 +185,7 @@ const App: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  <p className="text-gray-500 text-sm mb-6">Master parameters for sequential generation</p>
+                  <p className="text-gray-500 text-sm mb-6">Master parameters for the generation engine</p>
 
                   <div className={`space-y-8 transition-all duration-300 ${isConfigExpanded ? 'block' : 'hidden'}`}>
                     <div>
@@ -198,9 +195,9 @@ const App: React.FC = () => {
                         onChange={(e) => setConfig({ ...config, temperature: parseFloat(e.target.value) })}
                         className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg p-3 text-white outline-none focus:border-blue-500 transition-colors appearance-none"
                       >
-                        <option value={0.7}>0.7 - Logical & Focused</option>
-                        <option value={0.8}>0.8 - Balanced (Standard)</option>
-                        <option value={1.0}>1.0 - Cinematic Randomness</option>
+                        <option value={0.7}>0.7 - High Precision</option>
+                        <option value={0.8}>0.8 - Standard Balanced</option>
+                        <option value={1.0}>1.0 - More Creative</option>
                       </select>
                     </div>
 
@@ -218,7 +215,7 @@ const App: React.FC = () => {
                       )}
                       {keyStatus === 'missing' && (
                         <div className="flex items-center gap-1.5 px-3 py-1 bg-yellow-900/10 text-yellow-500 rounded border border-yellow-500/20 text-[10px] font-bold">
-                          <AlertTriangle size={12} /> Required
+                          <AlertTriangle size={12} /> Unconfigured
                         </div>
                       )}
                     </div>
@@ -229,7 +226,7 @@ const App: React.FC = () => {
                         type="password"
                         value={config.apiKey}
                         onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
-                        placeholder="Paste Gemini API Key"
+                        placeholder="Enter API Key"
                         className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg p-3 text-white outline-none focus:border-blue-500 transition-colors font-mono text-sm"
                       />
                     </div>
@@ -240,7 +237,7 @@ const App: React.FC = () => {
                         onClick={() => setIsSystemPromptExpanded(!isSystemPromptExpanded)}
                         className="text-[10px] text-gray-500 hover:text-white transition-colors uppercase font-black tracking-widest"
                       >
-                        {isSystemPromptExpanded ? 'Collapse' : 'Expand Engine'}
+                        {isSystemPromptExpanded ? 'Collapse Engine' : 'Expand Engine'}
                       </button>
                     </div>
 
