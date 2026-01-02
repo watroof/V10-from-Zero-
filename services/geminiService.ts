@@ -13,10 +13,9 @@ export const generateScript = async (
     tone: string;
     temperature: number;
     customSystemPrompt: string;
-    apiKey: string; // Add apiKey parameter
+    apiKey: string;
   }
 ): Promise<Partial<Script>> => {
-  // Initialize with the provided apiKey
   const ai = new GoogleGenAI({ apiKey: formData.apiKey });
 
   const responseSchema = {
@@ -31,8 +30,10 @@ export const generateScript = async (
             scene_number: { type: Type.INTEGER },
             visual_description: { type: Type.STRING },
             camera_motion: { type: Type.STRING },
-            start_frame_prompt: { type: Type.STRING },
-            end_frame_prompt: { type: Type.STRING },
+            start_frame_scene: { type: Type.STRING, description: "The specific visual action/layout for the start frame" },
+            start_frame_style: { type: Type.STRING, description: "The stylistic/aesthetic keywords for the start frame" },
+            end_frame_scene: { type: Type.STRING, description: "The specific visual action/layout for the end frame" },
+            end_frame_style: { type: Type.STRING, description: "The stylistic/aesthetic keywords for the end frame" },
             dialogue_or_narration: { type: Type.STRING },
             mood_and_lighting: { type: Type.STRING }
           },
@@ -40,8 +41,10 @@ export const generateScript = async (
             "scene_number",
             "visual_description",
             "camera_motion",
-            "start_frame_prompt",
-            "end_frame_prompt",
+            "start_frame_scene",
+            "start_frame_style",
+            "end_frame_scene",
+            "end_frame_style",
             "dialogue_or_narration",
             "mood_and_lighting"
           ]
@@ -52,7 +55,7 @@ export const generateScript = async (
   };
 
   const prompt = `
-    GENERATE SCRIPT FOLLOWING THE TWO-PHASE INSTRUCTION:
+    GENERATE SCRIPT FOLLOWING THE CONTINUITY-LOCKED INSTRUCTION:
     Mode: ${formData.mode}
     Subject: ${formData.personName}
     DOB: ${formData.dob || 'N/A'}
@@ -60,7 +63,8 @@ export const generateScript = async (
     Visual Style: ${formData.visualStyle}
     Tone: ${formData.tone}
     
-    The resulting video must be UNDER 24 SECONDS total.
+    CRITICAL: Exactly 3 scenes. Each 5-8 seconds. 
+    Ensure Scene 1 End Frame Scene matches Scene 2 Start Frame Scene exactly.
   `;
 
   try {

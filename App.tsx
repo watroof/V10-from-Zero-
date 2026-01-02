@@ -11,40 +11,43 @@ const INITIAL_SYSTEM_PROMPT = `# PEAK PRODUCTION ENGINE — TRIPLE-SCENE CONTINU
 
 ## MANDATORY WORKFLOW
 
-### PHASE 1: THREE-ACT MINI ARC
-Generate EXACTLY 3 scenes. Each scene must represent 5 to 8 seconds of footage.
-Total sequence duration must be between 15-24 seconds.
+### PHASE 1: THREE-ACT MINI ARC (5-8s per scene)
+Generate EXACTLY 3 scenes. Each scene represents 5 to 8 seconds of footage.
+Total sequence must be a cohesive, high-impact short narrative.
 
 ### PHASE 2: VISUAL BIBLE (LOCKS)
-Before writing scenes, you MUST define these constants:
-1. **Character Lock**: Define EXACT physical features (age, eyes, hair) and clothes. These CANNOT change. No age-jumping. If they are a toddler in Scene 1, they are a toddler in all 3 scenes.
-2. **Environment Lock**: Define the specific lighting and setting (e.g., "Misty sunrise in a pine forest, soft volumetric lighting").
+Define these constants first:
+1. **Character Lock**: Precise age, features, and clothing. No jumping. If 'Dramatic' tone is selected, emphasize lighting shadows and high-contrast features.
+2. **Environment Lock**: Detailed lighting (e.g., "High-contrast chiaroscuro" for Dramatic, "Soft watercolor" for Ghibli).
 
 ### PHASE 3: SEQUENTIAL CONTINUITY (THE HANDOFF)
-- **FRAME LINKING**: The 'end_frame_prompt' of Scene 1 MUST be the 'start_frame_prompt' of Scene 2. The 'end_frame_prompt' of Scene 2 MUST be the 'start_frame_prompt' of Scene 3.
-- Descriptions must match 1:1 to ensure the AI video generator treats them as the same moment in time.
+- **FRAME LINKING**: Scene N 'end_frame_scene' MUST match Scene N+1 'start_frame_scene' exactly.
+- Continuity is non-negotiable. Backgrounds and characters must persist 1:1.
 
-### PHASE 4: STRUCTURED OUTPUT
-Output the script in the requested JSON format.
+### PHASE 4: SEPARATE STYLE & SCENE
+For every start and end frame, you MUST provide:
+- **scene**: The specific action, character pose, and layout (e.g., "Samyak looking at the camera with a tear in his eye").
+- **style**: The stylistic descriptors (e.g., "Dramatic lighting, deep shadows, 8k cinematic photorealism").
 
 ---
 
 ## OUTPUT SCHEMA RULES
 
-- **visual_description**: A stand-alone cinematic prompt for the video generation tool.
-- **camera_motion**: Precise cinematic movement (e.g., "Static", "Pan Left", "Dolly In").
-- **start_frame_prompt**: Detailed image prompt for the starting frame. 
-- **end_frame_prompt**: Detailed image prompt for the ending frame.
+- **visual_description**: The stand-alone masterpiece prompt for the video tool.
+- **camera_motion**: Precise cinematic movement.
+- **start_frame_scene**: Action/Subject for start.
+- **start_frame_style**: Aesthetic for start.
+- **end_frame_scene**: Action/Subject for end.
+- **end_frame_style**: Aesthetic for end.
 - **dialogue_or_narration**: Audio components.
 - **mood_and_lighting**: Atmospheric cues.
 
 ---
 
 ## CONSTRAINTS
-1. **EXACTLY 3 SCENES**: No more, no less.
-2. **JSON ONLY**: No markdown or meta-text.
-3. **NO JUMPS**: No sudden aging, outfit changes, or background shifts unless it's a "match cut" with identical composition.
-4. **STYLE**: Maintain consistent style keywords (e.g., "Cinematic photorealism", "Hyper-detailed 8k") in every prompt field.`;
+1. **EXACTLY 3 SCENES**.
+2. **JSON ONLY**.
+3. **TONE ADHERENCE**: Dramatic tone requires intense emotional cues and moody lighting. Ghibli Cinematic style requires whimsical, hand-drawn textures and lush nature.`;
 
 type KeyStatus = 'missing' | 'connected' | 'error';
 
@@ -63,8 +66,8 @@ const App: React.FC = () => {
   const [isSystemPromptExpanded, setIsSystemPromptExpanded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('peak_scripts_v13');
-    const savedConfig = localStorage.getItem('peak_config_v13');
+    const saved = localStorage.getItem('peak_scripts_v14');
+    const savedConfig = localStorage.getItem('peak_config_v14');
     if (saved) {
       try { setScripts(JSON.parse(saved)); } catch (e) { console.error("History fail"); }
     }
@@ -78,7 +81,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('peak_scripts_v13', JSON.stringify(scripts));
+    localStorage.setItem('peak_scripts_v14', JSON.stringify(scripts));
   }, [scripts]);
 
   useEffect(() => {
@@ -90,7 +93,7 @@ const App: React.FC = () => {
   }, [config.apiKey]);
 
   const handleSaveConfig = () => {
-    localStorage.setItem('peak_config_v13', JSON.stringify(config));
+    localStorage.setItem('peak_config_v14', JSON.stringify(config));
     setIsSystemPromptExpanded(false);
     setIsConfigExpanded(false);
   };
@@ -135,11 +138,9 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#030303] text-white flex flex-col font-sans">
       <header className="fixed top-0 left-0 right-0 h-16 bg-[#0a0a0a] border-b border-white/10 flex items-center px-8 z-50">
-        <div className="flex items-center gap-2">
-          <div className="p-1 bg-blue-600 rounded">
-            <Sparkles size={16} className="text-white" />
-          </div>
-          <span className="font-black text-xl tracking-tighter uppercase">PEAK ENGINE</span>
+        <div className="flex items-center gap-2 text-blue-500">
+          <Sparkles size={20} fill="currentColor" />
+          <span className="font-black text-xl tracking-tighter uppercase text-white">PEAK ENGINE</span>
         </div>
       </header>
 
@@ -174,91 +175,63 @@ const App: React.FC = () => {
                   <div className="flex justify-between items-center mb-1">
                     <div className="flex items-center gap-2 text-blue-500">
                       <Settings size={20} />
-                      <h3 className="font-bold text-white text-lg">AI Configuration</h3>
+                      <h3 className="font-bold text-white text-lg tracking-tight">AI Engine Config</h3>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="px-3 py-1 bg-blue-900/30 text-blue-400 text-xs font-medium rounded border border-blue-500/20">
-                        Temp: {config.temperature}
-                      </div>
-                      <button onClick={() => setIsConfigExpanded(!isConfigExpanded)}>
-                        {isConfigExpanded ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}
-                      </button>
-                    </div>
+                    <button onClick={() => setIsConfigExpanded(!isConfigExpanded)}>
+                      {isConfigExpanded ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}
+                    </button>
                   </div>
-                  <p className="text-gray-500 text-sm mb-6">Master parameters for the generation engine</p>
+                  <p className="text-gray-500 text-sm mb-6 italic">Calibration parameters for sequential generation</p>
 
                   <div className={`space-y-8 transition-all duration-300 ${isConfigExpanded ? 'block' : 'hidden'}`}>
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Creativity Level (Temperature)</label>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Creativity Level</label>
                       <select 
                         value={config.temperature}
                         onChange={(e) => setConfig({ ...config, temperature: parseFloat(e.target.value) })}
                         className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg p-3 text-white outline-none focus:border-blue-500 transition-colors appearance-none"
                       >
-                        <option value={0.7}>0.7 - High Precision</option>
+                        <option value={0.7}>0.7 - High Continuity</option>
                         <option value={0.8}>0.8 - Standard Balanced</option>
-                        <option value={1.0}>1.0 - More Creative</option>
+                        <option value={1.0}>1.0 - Artistic Flux</option>
                       </select>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-white/5 pt-6">
-                      <span className="text-sm font-medium text-gray-300">API Key Status</span>
-                      {keyStatus === 'connected' && (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-green-900/20 text-green-500 rounded border border-green-500/20 text-[10px] font-bold">
-                          <Check size={12} /> Connected
-                        </div>
-                      )}
-                      {keyStatus === 'error' && (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-red-900/20 text-red-500 rounded border border-red-500/20 text-[10px] font-bold">
-                          <XCircle size={12} /> Error
-                        </div>
-                      )}
-                      {keyStatus === 'missing' && (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-yellow-900/10 text-yellow-500 rounded border border-yellow-500/20 text-[10px] font-bold">
-                          <AlertTriangle size={12} /> Unconfigured
-                        </div>
-                      )}
-                    </div>
-
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Gemini API Key</label>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Gemini API Key</label>
                       <input 
                         type="password"
                         value={config.apiKey}
                         onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
-                        placeholder="Enter API Key"
+                        placeholder="Paste Gemini Key"
                         className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg p-3 text-white outline-none focus:border-blue-500 transition-colors font-mono text-sm"
                       />
                     </div>
 
                     <div className="flex items-center justify-between py-2 border-t border-white/5 pt-4">
-                      <span className="text-sm font-medium text-gray-300">System Instruction Matrix</span>
+                      <span className="text-xs font-bold text-gray-400">System Instruction Matrix</span>
                       <button 
                         onClick={() => setIsSystemPromptExpanded(!isSystemPromptExpanded)}
-                        className="text-[10px] text-gray-500 hover:text-white transition-colors uppercase font-black tracking-widest"
+                        className="text-[10px] text-blue-500 hover:text-blue-400 transition-colors uppercase font-black tracking-widest"
                       >
-                        {isSystemPromptExpanded ? 'Collapse Engine' : 'Expand Engine'}
+                        {isSystemPromptExpanded ? 'Collapse' : 'Modify Logic'}
                       </button>
                     </div>
 
                     {isSystemPromptExpanded && (
-                      <div className="animate-in fade-in slide-in-from-top-2">
-                        <textarea
-                          value={config.systemPrompt}
-                          onChange={(e) => setConfig({ ...config, systemPrompt: e.target.value })}
-                          className="w-full h-80 bg-[#0d0d0d] border border-white/10 rounded-lg p-4 text-[11px] font-mono text-gray-400 outline-none focus:border-blue-500 transition-all resize-y"
-                        />
-                      </div>
+                      <textarea
+                        value={config.systemPrompt}
+                        onChange={(e) => setConfig({ ...config, systemPrompt: e.target.value })}
+                        className="w-full h-80 bg-[#0d0d0d] border border-white/10 rounded-lg p-4 text-[11px] font-mono text-gray-400 outline-none focus:border-blue-500 transition-all resize-y"
+                      />
                     )}
 
-                    <div className="pt-2">
-                      <button 
-                        onClick={handleSaveConfig}
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg uppercase tracking-widest text-sm"
-                      >
-                        <Save size={18} /> Update Matrix
-                      </button>
-                    </div>
+                    <button 
+                      onClick={handleSaveConfig}
+                      className="w-full bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest py-3.5 rounded-lg transition-all flex items-center justify-center gap-2 border border-white/10 text-xs"
+                    >
+                      <Save size={14} /> Update Calibration
+                    </button>
                   </div>
                 </div>
               </div>

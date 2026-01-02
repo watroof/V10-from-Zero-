@@ -3,8 +3,10 @@ export interface Scene {
   scene_number: number;
   visual_description: string;
   camera_motion: string;
-  start_frame_prompt: string;
-  end_frame_prompt: string;
+  start_frame_scene: string;
+  start_frame_style: string;
+  end_frame_scene: string;
+  end_frame_style: string;
   dialogue_or_narration: string;
   mood_and_lighting: string;
 }
@@ -21,5 +23,5 @@ export interface Script {
 }
 
 export type ModeType = 'Birthday' | 'Anniversary' | 'Wedding' | 'General';
-export type VisualStyleType = 'Realistic' | 'Anime' | 'Cyberpunk';
-export type ToneType = 'Wholesome' | 'Exciting' | 'Cinematic';
+export type VisualStyleType = 'Realistic' | 'Anime' | 'Cyberpunk' | 'Ghibli Cinematic';
+export type ToneType = 'Wholesome' | 'Exciting' | 'Cinematic' | 'Dramatic';
