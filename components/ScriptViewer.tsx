@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Script } from '../types';
-import { Copy, FileJson, Camera, Music, Clapperboard, Sparkles, Check, ChevronLeft } from 'lucide-react';
+import { Copy, FileJson, Camera, Music, Clapperboard, Sparkles, Check, ChevronLeft, Layout, ClipboardList } from 'lucide-react';
 
 interface ScriptViewerProps {
   script: Script;
@@ -17,16 +17,18 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onClose }) => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const copyAsJson = (scene: any, id: string) => {
+  const copyAsWhiskJson = (scene: any, id: string) => {
     const jsonPrompt = JSON.stringify({
       prompt: scene.visual_description,
-      negative_prompt: "text, watermark, logo, blurry, distorted anatomy, jumping background",
-      style: script.visual_style,
+      style_reference: script.visual_style,
+      negative_prompt: "text, watermark, logo, blurry, distorted anatomy, jumping background, inconsistent character",
       motion_bucket: 127,
       seed: Math.floor(Math.random() * 1000000)
     }, null, 2);
     copyText(jsonPrompt, id);
   };
+
+  const globalStyleDetails = `STYLE: ${script.visual_style}\nTONE: ${script.tone}\nSUBJECT: ${script.person_name}\nTOTAL SCENES: ${script.scenes.length}`;
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-12 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -40,7 +42,7 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onClose }) => {
           )}
           <div>
             <h1 className="text-2xl font-black text-white uppercase tracking-tighter">{script.title}</h1>
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em]">{script.person_name} • {script.visual_style}</p>
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em]">{script.person_name} • {script.mode}</p>
           </div>
         </div>
         <button 
@@ -52,8 +54,42 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onClose }) => {
         </button>
       </div>
 
+      {/* Global Style & Details Section */}
+      <div className="bg-[#111] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+        <div className="bg-white/5 px-6 py-4 border-b border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-blue-400">
+            <Layout size={18} />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Global Style & Production Details</span>
+          </div>
+          <button 
+            onClick={() => copyText(globalStyleDetails, 'global-style')}
+            className="text-[9px] font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1"
+          >
+            {copiedId === 'global-style' ? <Check size={10} /> : <Copy size={10} />}
+            Copy Style Info
+          </button>
+        </div>
+        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Visual DNA</span>
+            <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+              <p className="text-sm font-medium text-gray-300">Style: <span className="text-white">{script.visual_style}</span></p>
+              <p className="text-sm font-medium text-gray-300">Tone: <span className="text-white">{script.tone}</span></p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Character Consistency</span>
+            <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+              <p className="text-sm font-medium text-gray-300">Locked Subject: <span className="text-white">{script.person_name}</span></p>
+              <p className="text-sm font-medium text-gray-300">Sequence Logic: <span className="text-emerald-500">Sequential Frame Handoff Enabled</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Scenes Section */}
       <div className="space-y-24 pt-8">
-        {script.scenes.map((scene) => (
+        {script.scenes.map((scene, idx) => (
           <div key={scene.scene_number} className="relative group">
             <div className="flex items-center gap-4 mb-6">
                <div className="w-10 h-10 bg-blue-600 text-white font-black rounded flex items-center justify-center text-sm shadow-[0_0_20px_rgba(37,99,235,0.3)]">
@@ -65,10 +101,13 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onClose }) => {
 
             <div className="space-y-8 bg-[#0a0a0a] border border-white/5 rounded-3xl p-8 shadow-2xl transition-all hover:border-white/10">
               
-              {/* Scene Prompt Section */}
+              {/* Scene Prompt Header */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500">Scene Prompt (Main Context)</span>
+                  <div className="flex items-center gap-2">
+                    <ClipboardList size={14} className="text-blue-500" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500">Scene Prompt (Video Generation)</span>
+                  </div>
                   <div className="flex gap-2">
                     <button 
                       onClick={() => copyText(scene.visual_description, `txt-${scene.scene_number}`)}
@@ -78,27 +117,27 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onClose }) => {
                       COPY TEXT
                     </button>
                     <button 
-                      onClick={() => copyAsJson(scene, `json-${scene.scene_number}`)}
+                      onClick={() => copyAsWhiskJson(scene, `json-${scene.scene_number}`)}
                       className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 hover:text-blue-300 rounded border border-blue-500/20 text-[10px] font-bold transition-all"
                     >
                       {copiedId === `json-${scene.scene_number}` ? <Check size={12} /> : <Sparkles size={12} />}
-                      COPY JSON PROMPT
+                      COPY JSON
                     </button>
                   </div>
                 </div>
-                <div className="bg-[#111] p-6 rounded-2xl border border-white/5 text-center">
+                <div className="bg-[#111] p-6 rounded-2xl border border-white/5 text-center shadow-inner">
                   <p className="text-gray-200 text-xl leading-relaxed font-medium">
                     {scene.visual_description}
                   </p>
                 </div>
               </div>
 
-              {/* Performance / Motion Block */}
+              {/* Action & Dialogue Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-[#111] border border-white/5 p-5 rounded-2xl space-y-3">
                   <div className="flex items-center gap-2 text-orange-500 mb-2">
                     <Clapperboard size={14} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Performance & Motion</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">Actions & Motion</span>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
@@ -107,31 +146,32 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onClose }) => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[9px] text-gray-500 uppercase font-bold">Atmosphere:</span>
-                      <span className="text-xs text-white bg-white/5 px-2 py-0.5 rounded">{scene.mood_and_lighting}</span>
+                      <span className="text-xs text-white bg-white/5 px-2 py-0.5 rounded italic">{scene.mood_and_lighting}</span>
                     </div>
                   </div>
                 </div>
 
-                {scene.dialogue_or_narration && (
-                  <div className="bg-blue-500/5 border border-blue-500/10 p-5 rounded-2xl space-y-3">
-                    <div className="flex items-center gap-2 text-blue-400 mb-2">
-                      <Music size={14} />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Dialogue / Audio</span>
-                    </div>
-                    <p className="text-sm text-gray-300 italic font-medium leading-relaxed">
-                      "{scene.dialogue_or_narration}"
-                    </p>
+                <div className="bg-blue-500/5 border border-blue-500/10 p-5 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2 text-blue-400 mb-2">
+                    <Music size={14} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Dialogue / Narration</span>
                   </div>
-                )}
+                  <p className="text-sm text-gray-300 italic font-medium leading-relaxed">
+                    {scene.dialogue_or_narration || "No audio cues for this scene."}
+                  </p>
+                </div>
               </div>
 
-              {/* Frame Prompts (Optimized for Whisk/Runway) */}
+              {/* Frame Continuity Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
+                {/* Start Frame */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-emerald-400">
                       <Camera size={14} />
-                      <span className="text-[9px] font-black uppercase tracking-widest">Start Frame Prompt</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest">
+                        {idx > 0 ? "Start Frame (Sequential Handoff)" : "Start Frame Prompt"}
+                      </span>
                     </div>
                     <button 
                       onClick={() => copyText(scene.start_frame_prompt, `sf-${scene.scene_number}`)}
@@ -141,11 +181,12 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onClose }) => {
                       Copy Text
                     </button>
                   </div>
-                  <div className="bg-black/40 border border-emerald-500/10 p-4 rounded-xl text-[11px] text-gray-400 leading-relaxed min-h-[70px]">
+                  <div className={`bg-black/40 border p-4 rounded-xl text-[11px] text-gray-400 leading-relaxed min-h-[80px] ${idx > 0 ? 'border-emerald-500/20 ring-1 ring-emerald-500/5' : 'border-white/5'}`}>
                     {scene.start_frame_prompt}
                   </div>
                 </div>
 
+                {/* End Frame */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-purple-400">
@@ -160,7 +201,7 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onClose }) => {
                       Copy Text
                     </button>
                   </div>
-                  <div className="bg-black/40 border border-purple-500/10 p-4 rounded-xl text-[11px] text-gray-400 leading-relaxed min-h-[70px]">
+                  <div className="bg-black/40 border border-purple-500/10 p-4 rounded-xl text-[11px] text-gray-400 leading-relaxed min-h-[80px]">
                     {scene.end_frame_prompt}
                   </div>
                 </div>
@@ -172,12 +213,12 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onClose }) => {
       </div>
       
       {onClose && (
-        <div className="flex justify-center pt-12">
+        <div className="flex justify-center pt-24 pb-48">
           <button 
             onClick={onClose} 
-            className="px-12 py-5 bg-white text-black font-black uppercase tracking-[0.2em] rounded-full hover:bg-gray-200 transition-all text-sm shadow-xl"
+            className="px-12 py-5 bg-white text-black font-black uppercase tracking-[0.2em] rounded-full hover:bg-gray-200 transition-all text-sm shadow-xl shadow-white/5"
           >
-            Return to Core
+            End Production Session
           </button>
         </div>
       )}

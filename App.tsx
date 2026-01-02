@@ -7,44 +7,47 @@ import { Script } from './types';
 import { generateScript } from './services/geminiService';
 import { Terminal, Sparkles, Settings, ChevronUp, ChevronDown, Check, Save, XCircle, AlertTriangle } from 'lucide-react';
 
-const INITIAL_SYSTEM_PROMPT = `# PEAK PRODUCTION ENGINE — CONSISTENCY-LOCKED SCRIPT GENERATOR
+const INITIAL_SYSTEM_PROMPT = `# PEAK PRODUCTION ENGINE — SEQUENTIAL CONSISTENCY-LOCKED GENERATOR
 
 ## MANDATORY WORKFLOW
 
-### PHASE 1: CREATIVE EXPLOSION
-Generate a wild, cinematic story. Focus on flow, energy, and visual high-points. 
+### PHASE 1: NARRATIVE ARC
+Create a high-energy cinematic sequence. Focus on a singular, evolving moment.
 
-### PHASE 2: CONSISTENCY LOCK (CRITICAL)
-Before structuring, define the "Visual Bible" for this specific generation:
-1. **Character Lock**: Define the person's EXACT age, physical features (hair, eyes), and specific attire. This MUST NOT CHANGE between scenes. If they are a toddler in Scene 1, they are a toddler in every scene.
-2. **Environment Lock**: Define the specific lighting (e.g., "Golden Hour") and location details that must persist across the sequence to avoid background jumping.
+### PHASE 2: VISUAL BIBLE (LOCKS)
+Before writing scenes, you MUST define these constants:
+1. **Character Lock**: Define EXACT physical features (age, eyes, hair) and clothes. These CANNOT change. If the character is 3 years old in Scene 1, they are 3 in Scene 5.
+2. **Environment Lock**: Define the specific lighting and setting details (e.g., "Neon-lit Tokyo Alley, raining, blue/cyan shadows").
 
-### PHASE 3: STRUCTURED OUTPUT
-Convert the story into the requested JSON schema while strictly applying the "Consistency Lock" to every single prompt field.
+### PHASE 3: SEQUENTIAL CONTINUITY (CRITICAL)
+- **FRAME HANDOFF**: The 'end_frame_prompt' of Scene N MUST be the basis for the 'start_frame_prompt' of Scene N+1. They must describe the exact same visual state to ensure a smooth transition.
+- **CONSISTENCY**: Every prompt must mention the Character and Environment Locks to prevent model drift.
+
+### PHASE 4: STRUCTURED OUTPUT
+Output the script in the requested JSON format.
 
 ---
 
 ## OUTPUT SCHEMA RULES
 
-- **visual_description**: Detailed scene prompt for AI Video tools. Includes character actions, precise appearance, and specific environment details.
-- **camera_motion**: Specific movement (e.g., "Static", "Slow Zoom In", "Orbit Right").
-- **start_frame_prompt**: A detailed image prompt for the starting frame. MUST include the character/style locks.
-- **end_frame_prompt**: A detailed image prompt for the ending frame.
-- **dialogue_or_narration**: Spoken lines or narration.
-- **mood_and_lighting**: Specific atmospheric cues.
+- **visual_description**: A stand-alone masterpiece prompt for AI video generation.
+- **camera_motion**: Precise cinematic movement.
+- **start_frame_prompt**: Detailed image prompt for the first frame. 
+- **end_frame_prompt**: Detailed image prompt for the final frame. **Crucial**: This MUST match the start frame of the following scene.
+- **dialogue_or_narration**: Audio components.
+- **mood_and_lighting**: Atmospheric cues.
 
 ---
 
-## STRICTURES
-1. **NO AGE JUMPING**: The character's age MUST be consistent. Use the provided name and optional DOB to fix the age.
-2. **STYLE PERSISTENCE**: The visual style (Anime, Realistic, etc.) must be reinforced in every prompt.
-3. **JSON ONLY**: No markdown, no conversational fillers.
-4. **TOTAL TIME**: Total sequence < 24 seconds. 3-5 scenes total.
+## CONSTRAINTS
+1. **JSON ONLY**: No preamble or metadata.
+2. **TIME**: Total sequence < 24 seconds.
+3. **NO JUMPS**: No sudden aging or outfit changes. No sudden location jumps unless specified as a "match cut".
 
 ---
 
-## FOR WHISK / GOOGLE LABS OPTIMIZATION
-The 'visual_description' should be a stand-alone masterpiece of a prompt that links the visual style and the action perfectly.`;
+## FOR WHISK / GOOGLE LABS
+Maintain a consistent style keyword (e.g., "Cinematic photorealism", "Studio Ghibli style") in every single frame and visual description prompt.`;
 
 type KeyStatus = 'missing' | 'connected' | 'error';
 
@@ -63,8 +66,8 @@ const App: React.FC = () => {
   const [isSystemPromptExpanded, setIsSystemPromptExpanded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('peak_scripts_v11');
-    const savedConfig = localStorage.getItem('peak_config_v11');
+    const saved = localStorage.getItem('peak_scripts_v12');
+    const savedConfig = localStorage.getItem('peak_config_v12');
     if (saved) {
       try { setScripts(JSON.parse(saved)); } catch (e) { console.error("History fail"); }
     }
@@ -78,7 +81,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('peak_scripts_v11', JSON.stringify(scripts));
+    localStorage.setItem('peak_scripts_v12', JSON.stringify(scripts));
   }, [scripts]);
 
   useEffect(() => {
@@ -90,14 +93,14 @@ const App: React.FC = () => {
   }, [config.apiKey]);
 
   const handleSaveConfig = () => {
-    localStorage.setItem('peak_config_v11', JSON.stringify(config));
+    localStorage.setItem('peak_config_v12', JSON.stringify(config));
     setIsSystemPromptExpanded(false);
     setIsConfigExpanded(false);
   };
 
   const handleGenerate = async (formData: any) => {
     if (!config.apiKey) {
-      setError("API Key Required.");
+      setError("API Key required.");
       setIsConfigExpanded(true);
       return;
     }
@@ -156,7 +159,7 @@ const App: React.FC = () => {
           {isLoading && (
             <div className="py-20 flex flex-col items-center justify-center space-y-8">
               <div className="w-16 h-16 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
-              <p className="text-blue-400 font-bold uppercase tracking-[0.2em] text-sm">Synthesizing Consistency Locks...</p>
+              <p className="text-blue-400 font-bold uppercase tracking-[0.2em] text-sm">Locking Character & Environment Continuity...</p>
             </div>
           )}
 
@@ -185,23 +188,20 @@ const App: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  <p className="text-gray-500 text-sm mb-6">Master parameters for the generation engine</p>
+                  <p className="text-gray-500 text-sm mb-6">Master parameters for sequential generation</p>
 
                   <div className={`space-y-8 transition-all duration-300 ${isConfigExpanded ? 'block' : 'hidden'}`}>
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Temperature (Controls Creativity)</label>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Creativity Level (Temperature)</label>
                       <select 
                         value={config.temperature}
                         onChange={(e) => setConfig({ ...config, temperature: parseFloat(e.target.value) })}
                         className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg p-3 text-white outline-none focus:border-blue-500 transition-colors appearance-none"
                       >
-                        <option value={0.7}>0.7 - More Focused</option>
-                        <option value={0.8}>0.8 - Balanced (Default)</option>
-                        <option value={1.0}>1.0 - More Creative</option>
+                        <option value={0.7}>0.7 - Logical & Focused</option>
+                        <option value={0.8}>0.8 - Balanced (Standard)</option>
+                        <option value={1.0}>1.0 - Cinematic Randomness</option>
                       </select>
-                      <p className="text-[10px] text-gray-600 mt-2 uppercase tracking-widest font-bold">
-                        Higher = Cinematic Randomness | Lower = Narrative Logic
-                      </p>
                     </div>
 
                     <div className="flex items-center justify-between border-t border-white/5 pt-6">
@@ -218,7 +218,7 @@ const App: React.FC = () => {
                       )}
                       {keyStatus === 'missing' && (
                         <div className="flex items-center gap-1.5 px-3 py-1 bg-yellow-900/10 text-yellow-500 rounded border border-yellow-500/20 text-[10px] font-bold">
-                          <AlertTriangle size={12} /> Unconfigured
+                          <AlertTriangle size={12} /> Required
                         </div>
                       )}
                     </div>
@@ -229,7 +229,7 @@ const App: React.FC = () => {
                         type="password"
                         value={config.apiKey}
                         onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
-                        placeholder="Enter your Gemini API key"
+                        placeholder="Paste Gemini API Key"
                         className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg p-3 text-white outline-none focus:border-blue-500 transition-colors font-mono text-sm"
                       />
                     </div>
