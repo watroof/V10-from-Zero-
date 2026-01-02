@@ -22,6 +22,10 @@ export const generateScript = async (
     type: Type.OBJECT,
     properties: {
       title: { type: Type.STRING },
+      master_style_prompt: { 
+        type: Type.STRING, 
+        description: "The core stylistic DNA for the whole video. Include art style, lens, lighting, and palette." 
+      },
       scenes: {
         type: Type.ARRAY,
         items: {
@@ -30,10 +34,8 @@ export const generateScript = async (
             scene_number: { type: Type.INTEGER },
             visual_description: { type: Type.STRING },
             camera_motion: { type: Type.STRING },
-            start_frame_scene: { type: Type.STRING, description: "The specific visual action/layout for the start frame" },
-            start_frame_style: { type: Type.STRING, description: "The stylistic/aesthetic keywords for the start frame" },
-            end_frame_scene: { type: Type.STRING, description: "The specific visual action/layout for the end frame" },
-            end_frame_style: { type: Type.STRING, description: "The stylistic/aesthetic keywords for the end frame" },
+            start_frame_prompt: { type: Type.STRING, description: "Full prompt for the starting image, incorporating the master style." },
+            end_frame_prompt: { type: Type.STRING, description: "Full prompt for the ending image, incorporating the master style." },
             dialogue_or_narration: { type: Type.STRING },
             mood_and_lighting: { type: Type.STRING }
           },
@@ -41,17 +43,15 @@ export const generateScript = async (
             "scene_number",
             "visual_description",
             "camera_motion",
-            "start_frame_scene",
-            "start_frame_style",
-            "end_frame_scene",
-            "end_frame_style",
+            "start_frame_prompt",
+            "end_frame_prompt",
             "dialogue_or_narration",
             "mood_and_lighting"
           ]
         }
       }
     },
-    required: ["title", "scenes"]
+    required: ["title", "master_style_prompt", "scenes"]
   };
 
   const prompt = `
@@ -64,7 +64,7 @@ export const generateScript = async (
     Tone: ${formData.tone}
     
     CRITICAL: Exactly 3 scenes. Each 5-8 seconds. 
-    Ensure Scene 1 End Frame Scene matches Scene 2 Start Frame Scene exactly.
+    Ensure Scene 1 End Frame Prompt content matches Scene 2 Start Frame Prompt content exactly.
   `;
 
   try {
@@ -83,6 +83,7 @@ export const generateScript = async (
     return {
       title: result.title,
       scenes: result.scenes,
+      master_style_prompt: result.master_style_prompt,
       mode: formData.mode,
       person_name: formData.personName,
       visual_style: formData.visualStyle,

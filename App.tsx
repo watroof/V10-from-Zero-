@@ -17,28 +17,30 @@ Total sequence must be a cohesive, high-impact short narrative.
 
 ### PHASE 2: VISUAL BIBLE (LOCKS)
 Define these constants first:
-1. **Character Lock**: Precise age, features, and clothing. No jumping. If 'Dramatic' tone is selected, emphasize lighting shadows and high-contrast features.
-2. **Environment Lock**: Detailed lighting (e.g., "High-contrast chiaroscuro" for Dramatic, "Soft watercolor" for Ghibli).
+1. **Character Lock**: Precise age, features, and clothing. No jumping. 
+2. **Environment Lock**: Detailed lighting and setting consistency.
 
-### PHASE 3: SEQUENTIAL CONTINUITY (THE HANDOFF)
-- **FRAME LINKING**: Scene N 'end_frame_scene' MUST match Scene N+1 'start_frame_scene' exactly.
+### PHASE 3: MASTER STYLE PROMPT (CONSISTENCY HUB)
+- You MUST generate a 'master_style_prompt'. This is a detailed string containing all stylistic keywords (art style, camera lens type, lighting mood, color palette, texture details). 
+- This prompt is the foundation for ALL visual prompts in the video.
+
+### PHASE 4: SEQUENTIAL CONTINUITY (THE HANDOFF)
+- **FRAME LINKING**: Scene N 'end_frame_prompt' MUST match Scene N+1 'start_frame_prompt' exactly in content.
 - Continuity is non-negotiable. Backgrounds and characters must persist 1:1.
 
-### PHASE 4: SEPARATE STYLE & SCENE
-For every start and end frame, you MUST provide:
-- **scene**: The specific action, character pose, and layout (e.g., "Samyak looking at the camera with a tear in his eye").
-- **style**: The stylistic descriptors (e.g., "Dramatic lighting, deep shadows, 8k cinematic photorealism").
+### PHASE 5: FRAME ENGINE OUTPUT
+For every scene, you MUST provide exactly two frame prompts:
+- **start_frame_prompt**: The visual description for the beginning of the clip, including the master style keywords.
+- **end_frame_prompt**: The visual description for the end of the clip, including the master style keywords.
 
 ---
 
 ## OUTPUT SCHEMA RULES
-
+- **master_style_prompt**: The core style prompt for the whole video.
 - **visual_description**: The stand-alone masterpiece prompt for the video tool.
 - **camera_motion**: Precise cinematic movement.
-- **start_frame_scene**: Action/Subject for start.
-- **start_frame_style**: Aesthetic for start.
-- **end_frame_scene**: Action/Subject for end.
-- **end_frame_style**: Aesthetic for end.
+- **start_frame_prompt**: Full description for clip start.
+- **end_frame_prompt**: Full description for clip end.
 - **dialogue_or_narration**: Audio components.
 - **mood_and_lighting**: Atmospheric cues.
 
@@ -47,7 +49,7 @@ For every start and end frame, you MUST provide:
 ## CONSTRAINTS
 1. **EXACTLY 3 SCENES**.
 2. **JSON ONLY**.
-3. **TONE ADHERENCE**: Dramatic tone requires intense emotional cues and moody lighting. Ghibli Cinematic style requires whimsical, hand-drawn textures and lush nature.`;
+3. **STYLE ADHERENCE**: The style MUST be consistent across all 3 clips.`;
 
 type KeyStatus = 'missing' | 'connected' | 'error';
 
@@ -66,8 +68,8 @@ const App: React.FC = () => {
   const [isSystemPromptExpanded, setIsSystemPromptExpanded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('peak_scripts_v14');
-    const savedConfig = localStorage.getItem('peak_config_v14');
+    const saved = localStorage.getItem('peak_scripts_v16');
+    const savedConfig = localStorage.getItem('peak_config_v16');
     if (saved) {
       try { setScripts(JSON.parse(saved)); } catch (e) { console.error("History fail"); }
     }
@@ -81,7 +83,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('peak_scripts_v14', JSON.stringify(scripts));
+    localStorage.setItem('peak_scripts_v16', JSON.stringify(scripts));
   }, [scripts]);
 
   useEffect(() => {
@@ -93,7 +95,7 @@ const App: React.FC = () => {
   }, [config.apiKey]);
 
   const handleSaveConfig = () => {
-    localStorage.setItem('peak_config_v14', JSON.stringify(config));
+    localStorage.setItem('peak_config_v16', JSON.stringify(config));
     setIsSystemPromptExpanded(false);
     setIsConfigExpanded(false);
   };

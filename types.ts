@@ -3,10 +3,8 @@ export interface Scene {
   scene_number: number;
   visual_description: string;
   camera_motion: string;
-  start_frame_scene: string;
-  start_frame_style: string;
-  end_frame_scene: string;
-  end_frame_style: string;
+  start_frame_prompt: string;
+  end_frame_prompt: string;
   dialogue_or_narration: string;
   mood_and_lighting: string;
 }
@@ -17,6 +15,7 @@ export interface Script {
   mode: string;
   person_name: string;
   visual_style: string;
+  master_style_prompt: string;
   tone: string;
   scenes: Scene[];
   created_at: string;
