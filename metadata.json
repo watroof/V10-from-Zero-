@@ -1,0 +1,5 @@
+{
+  "name": "AI Script Generator",
+  "description": "A production-grade AI video script engine that generates cinematic, scene-based scripts optimized for AI video generation tools like Kling, Runway, and Sora.",
+  "requestFramePermissions": []
+}
